@@ -1,0 +1,140 @@
+hdfs dfs -rm -r /user/$USER/data/output/exc-cw1/s1240267_task_1.out
+hdfs dfs -ls /user/$USER/data/output/exc-cw1/s1240267_task_1.out
+
+hadoop fs -getmerge /user/s1240267/data/output/exc-cw1/s1240267_task_1.out /user/s1240267/data/output/exc-cw1/s1240267_task_1.out/merged
+
+________________________________________________________________________________________________
+
+Task1 code begin
+
+mapper:
+#!/usr/bin/python
+import sys
+for line in sys.stdin:                  # input from standard input
+	line = line.strip()
+    print line.lower()
+
+reducer:
+None
+
+Hadoop command:
+hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /data/assignments/ex1/webLarge.txt \
+ -output /user/s1240267/data/output/exc-cw1/s1240267_task_1.out \
+ -mapper t1-map.py \
+ -file ~/EC/CW1/t1-map.py 
+
+ Task1 code end
+
+ Task1 results begin
+
+ Task1 results end
+
+
+________________________________________________________________________________________________
+
+
+Task2 code begin
+
+#wrote code for -cat because it doesnt seem to work 
+mapper:
+#!/usr/bin/python
+import sys
+for line in sys.stdin:                  # input from standard input
+	line = line.strip()
+    print line
+
+reducer:
+#!/usr/bin/python
+import sys
+prev_line = ""
+for line in sys.stdin:          # For ever line in the input from stdin
+	line = line.strip()
+    if prev_line != line:
+        print line
+        prev_line = line
+
+Hadoop command:
+hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /user/s1240267/data/output/exc-cw1/s1240267_task_1.out \
+ -output /user/s1240267/data/output/exc-cw1/s1240267_task_2.out \
+ -mapper t2-map.py \
+ -file ~/EC/CW1/t2-map.py \
+ -reducer t2-reduce.py \
+ -file ~/EC/CW1/t2-reduce.py
+
+________________________________________________________________________________________________
+
+Task3 code begin
+
+
+mapper:
+#!/usr/bin/python
+import sys
+lines_read=0
+for line in sys.stdin:
+        line =line.strip()
+        tokens = line.split()
+        print("{0}\t{1}".format(line,len(tokens)))
+
+
+reducer:
+#!/usr/bin/python
+import sys
+prev_line = ""
+line_total = 0
+word_total = 0
+for line in sys.stdin:          # For ever line in the input from stdin
+    line = line.strip()         # Remove trailing characters
+    line, value = line.split("\t", 1)
+    value = int(value)
+    line_total += 1
+    word_total += value
+print("{0}\t{1}".format(line_total, word_total))
+
+
+hadoop command:
+hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /user/s1240267/data/output/exc-cw1/s1240267_task_2.out \
+ -output /user/s1240267/data/output/exc-cw1/s1240267_task_3.out \
+ -mapper t3-map.py \
+ -file ~/EC/CW1/t3-map.py \
+ -reducer t3-reduce.py \
+ -file ~/EC/CW1/t3-reduce.py
+
+unix command:
+hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_3.out/part-* | awk '{lines +=$1 ; words +=$2} END {print lines, words}' | hadoop fs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_3.out/summed.txt
+
+
+
+
+
+________________________________________________________________________________________________
+
+
+________________________________________________________________________________________________
+
+
+
+________________________________________________________________________________________________
+
+hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /data/assignments/ex1/webLarge.txt \
+ -output /user/s1240267/data/output/exc-cw1/s1240267_task_1.out \
+ -mapper t1-map.py \
+ -file ~/EC/CW1/t1-map.py
+
+
+
+ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /data/assignments/ex1/webSmall.txt \
+ -output /user/s1240267/data/output/testSmall.out \
+ -mapper t1-map.py \
+ -file ~/EC/CW1/t1-map.py 
+ 
+
+
+
+
+
+ hdfs dfs -ls /data/assignments/samples/

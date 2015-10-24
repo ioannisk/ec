@@ -1,0 +1,37 @@
+Your work should consist of:
+Your work should consist of:
+Your work should consist of:
+Your work should consist of:
+1. One plain text file, with sections for each part of this assignment. (This is
+1. One plain text file, with sections for each part of this assignment. (This is
+so that it is possible to see which part of the file answers which question.)
+Include all programs you have written. Make sure you comment your
+code so that what you are doing can be understood. Do not submit a
+Word document or a PDF file—only submit a plain text file.
+2. The output of each task stored in HDFS and named as sXXXXXXX task i.out
+2. The output of each task stored in HDFS and named as sXXXXXXX task i.out
+2. The output of each task stored in HDFS and named as sXXXXXXX task i.out
+where XXXXXXX is your matriculation number and i is the number of the
+task the folder corresponds to. Do not delete these files from HDFS until
+you are told it is OK to do so.
+Your text file submission should be named exc-mr.txt. Organise your file
+1. One plain text file, with sections for each part of this assignment. (This is
+1. One plain text file, with sections for each part of this assignment. (This is
+in sections for each task. Each section should have a code block that should
+start with Task i code begin and finish with Task i code end where i is
+the task you are currently providing the solution for. The code block should
+1. One plain text file, with sections for each part of this assignment. (This is
+1. One plain text file, with sections for each part of this assignment. (This is
+contain the mapper code, the reducer code (if a reducer is used) and the command
+(or commands) for running it on Hadoop. It should then be followed
+by a result block starting with Task i results begin and finishing with Task
+2. The output of each task stored in HDFS and named as sXXXXXXX task i.out
+2. The output of each task stored in HDFS and named as sXXXXXXX task i.out
+i results end for task i. The result block should contain the first 20 lines of
+your first output file that you have stored in HDFS. This is because the output
+files will be very big. You can use the command:
+hdfs dfs -cat filename | head -20
+for showing just the first 20 lines of the file. An example submission file should
+therefore look like:
+2. The output of each task stored in HDFS and named as sXXXXXXX task i.out
+2. The output of each task stored in HDFS and named as sXXXXXXX task i.out
