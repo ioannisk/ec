@@ -103,7 +103,7 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -file ~/EC/CW1/t3-reduce.py
 
 unix command:
-hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_3.out/part-* | awk '{lines +=$1 ; words +=$2} END {print lines, words}' | hadoop fs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_3.out/summed.txt
+hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_3.out/part-* | awk '{lines +=$1 ; words +=$2} END {print lines, words}' | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_3.out/summed.txt
 
 
 
@@ -111,9 +111,33 @@ hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_3.out/part-* | aw
 
 ________________________________________________________________________________________________
 
+Task 4
+
+
+hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /user/s1240267/data/output/exc-cw1/s1240267_task_2.out \
+ -output /user/s1240267/data/output/exc-cw1/s1240267_task_4.out \
+ -mapper t4-map.py \
+ -file t4-map.py \
+ -reducer t4-reduce.py \
+ -file t4-reduce.py
+
 
 ________________________________________________________________________________________________
 
+Task 6
+
+
+
+hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_6.out/part-* | sort -r -k 3 | head -20 | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_6.out/top20.txt
+
+
+
+
+________________________________________________________________________________________________
+Task 7
+
+hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_7.out/part-* | sort -n | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_7.out/transposed.txt
 
 
 ________________________________________________________________________________________________
