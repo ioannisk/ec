@@ -137,10 +137,22 @@ hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_6.out/part-* | so
 ________________________________________________________________________________________________
 Task 7
 
-hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_7.out/part-* | sort -n | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_7.out/transposed.txt
+hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_7.out/part-* | sort -n | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_7.out/transposed.txt  
 
 
 ________________________________________________________________________________________________
+Task 9
+
+hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_9.out/part-* | sort -nk 2 | awk '
+BEGIN{s=-1}
+{if (s == -1) {
+	s=$2;
+	print $1"\t"$2 }
+else if (s==$2)
+	print $1"\t"2}' | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_9.out/min_scores.txt  
+
+________________________________________________________________________________________________
+
 
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /data/assignments/ex1/webLarge.txt \

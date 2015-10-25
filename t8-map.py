@@ -10,7 +10,7 @@ for line in sys.stdin:
 		#token[1] is stid
 		#token[2] is name
 		print("{0}\t{1}".format(tokens[1], tokens[2]))
-	else:
+	elif tokens[0] == "mark":
 		#case mark
 		#token[1] is course name
 		#token[2] is stid

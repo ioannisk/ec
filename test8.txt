@@ -4,3 +4,5 @@ student 2 Anna
 mark ADBS 1 80
 mark EXC 2 65
 mark TTS 1 80
+mark DDS 1 90
+mark xxx 1 100
