@@ -24,7 +24,7 @@ for line in sys.stdin:
 	else if prev_col != "":
 		#row is complete, flush it
 		output_row(trans_row)
-		del trans_row[:]
+		del trans_row[:]	#flush cell list 
 		prev_col = col
 		trans_row.append( (int(row), cell) )
 

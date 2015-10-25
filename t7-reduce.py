@@ -10,7 +10,7 @@ trans_row = []
 
 def output_row(row, cell_list):
     cell_list = sorted(cell_list, key=lambda tup: tup[0])
-    sys.stdout.write("{0} ".format(row))
+    sys.stdout.write("{0}: ".format(row))
     for cell in cell_list:
         sys.stdout.write("{0} ".format(cell[1]))
     print 
