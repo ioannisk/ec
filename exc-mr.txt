@@ -1,7 +1,7 @@
 hdfs dfs -rm -r /user/$USER/data/output/exc-cw1/s1240267_task_x.out
 hdfs dfs -ls /user/$USER/data/output/exc-cw1/s1240267_task_1.out
-hdfs dfs -cat /data/assignments/samples/task_8.out/part-00000 | head
-hdfs dfs -cat /user/$USER/data/output/exc-cw1/s1240267_task_8.out/part-00000 | head
+hdfs dfs -cat /data/assignments/samples/task_6.out/part-00000
+hdfs dfs -cat /user/$USER/data/output/exc-cw1/s1240267_task_4.out/part-00000 | head
 
 
 
@@ -103,9 +103,9 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -input /user/s1240267/data/output/exc-cw1/s1240267_task_2.out \
  -output /user/s1240267/data/output/exc-cw1/s1240267_task_3.out \
  -mapper t3-map.py \
- -file ~/EC/CW1/t3-map.py \
+ -file t3-map.py \
  -reducer t3-reduce.py \
- -file ~/EC/CW1/t3-reduce.py
+ -file t3-reduce.py
 
 unix command:
 hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_3.out/part-* | awk '{lines +=$1 ; words +=$2} END {print lines, words}' | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_3.out/summed.txt
@@ -167,6 +167,8 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -reducer t4-reduce.py \
  -file t4-reduce.py
 
+cpu time spent: 1468910
+Reduce input records=8136405
 
 ________________________________________________________________________________________________
 
@@ -192,7 +194,9 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -combiner t4-reduce.py \
  -file t4-reduce.py
 
-
+cpu time spent: 1035070
+Reduce input records=14117303
+reduce input records and cpu dropped by a factor of 10
 ________________________________________________________________________________________________
 
 Task 6 code begin
@@ -245,8 +249,7 @@ hadoop command:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /user/s1240267/data/output/exc-cw1/s1240267_task_5.out \
  -output /user/s1240267/data/output/exc-cw1/s1240267_task_6.out \
- -mapper t2-map.py \
- -file t2-map.py \
+ -mapper /bin/cat \
  -reducer t6-reduce.py \
  -file t6-reduce.py
 
@@ -313,7 +316,7 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
 
 
 final linux command:
-hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_7.out/part-* | sort -n | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_7.out/transposed.txt
+hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_7.out/part-* | sort -n | cut -d ":" -f 2- | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_7.out/transposed.txt
 
 
 ________________________________________________________________________________________________
