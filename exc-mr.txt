@@ -57,14 +57,16 @@ for line in sys.stdin:          # For ever line in the input from stdin
         print line
         prev_line = line
 
+
+
+
 Hadoop command:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /user/s1240267/data/output/exc-cw1/s1240267_task_1.out \
  -output /user/s1240267/data/output/exc-cw1/s1240267_task_2.out \
- -mapper t2-map.py \
- -file ~/EC/CW1/t2-map.py \
+ -mapper /bin/cat \
  -reducer t2-reduce.py \
- -file ~/EC/CW1/t2-reduce.py
+ -file t2-reduce.py
 
 ________________________________________________________________________________________________
 
