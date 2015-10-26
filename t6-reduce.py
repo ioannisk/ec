@@ -3,7 +3,7 @@
 import sys
 
 prev_bigram = ""
-value_total = 0
+value_total = 0.0
 bigram=""
 top_20=[]
 
@@ -21,13 +21,13 @@ def check_and_add_top_20(bigram, value):
 def output_top_20():
     global top_20
     for k in top_20:
-        print("{0}\t{1}".format(k[0], k[1]))
+        print("{0}\t{1}".format(k[1], k[0]))
 
 for line in sys.stdin:         # For ever line in the input from stdin
     try:
         line = line.strip()         # Remove trailing characters
         bigram, value = line.split("\t", 1)
-        value = int(value)
+        value = float(value)
         # Remember that Hadoop sorts map output by key reducer takes these keys sorted
         if prev_bigram == bigram:
             value_total += value
