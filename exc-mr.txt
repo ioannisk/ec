@@ -26,7 +26,7 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -input /data/assignments/ex1/webLarge.txt \
  -output /user/s1240267/data/output/exc-cw1/s1240267_task_1.out \
  -mapper t1-map.py \
- -file ~/EC/CW1/t1-map.py 
+ -file t1-map.py 
 
  Task1 code end
 
@@ -422,8 +422,6 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -file t9-reduce.py
 
 
-
-
 hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_9.out/part-* | sort -nk 2 | awk '
 BEGIN{s=-1}
 {if (s == -1) {
@@ -431,6 +429,12 @@ BEGIN{s=-1}
 	print $1"\t"$2 }
 else if (s==$2)
 	print $1"\t"2}' | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_9.out/min_scores.txt  
+
+
+output:
+hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_9.out/min_scores.txt
+Patrick	23.33
+
 
 ________________________________________________________________________________________________
 
