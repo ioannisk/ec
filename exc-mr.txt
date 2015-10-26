@@ -1,19 +1,17 @@
 
-________________________________________________________________________________________________
-
 Task1 code begin
 
-mapper:
+### Mapper ###:
 #!/usr/bin/python
 import sys
 for line in sys.stdin:                  # input from standard input
 	line = line.strip()
     print line.lower()
 
-reducer:
+### Reducer ###:
 None
 
-Hadoop command:
+### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /data/assignments/ex1/webLarge.txt \
  -output /user/s1240267/data/output/exc-cw1/s1240267_task_1.out \
@@ -57,10 +55,10 @@ ________________________________________________________________________________
 
 Task2 code begin
 
-mapper:
+### Mapper ###:
 None
 
-reducer:
+### Reducer ###:
 #!/usr/bin/python
 import sys
 prev_line = ""
@@ -72,7 +70,7 @@ for line in sys.stdin:          # For ever line in the input from stdin
 
 
 
-Hadoop command:
+### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /user/s1240267/data/output/exc-cw1/s1240267_task_1.out \
  -output /user/s1240267/data/output/exc-cw1/s1240267_task_2.out \
@@ -116,7 +114,7 @@ ________________________________________________________________________________
 Task 3 code begin
 
 
-mapper:
+### Mapper ###:
 #!/usr/bin/python
 import sys
 lines_read=0
@@ -126,12 +124,11 @@ for line in sys.stdin:
         print("{0}\t{1}".format(line,len(tokens)))
 
 
-reducer:
+### Reducer ###:
 #!/usr/bin/python
 import sys
 line_total = 0
 word_total = 0
-
 for line in sys.stdin:          # For ever line in the input from stdin
         try:
                 line = line.strip()         # Remove trailing characters
@@ -144,7 +141,7 @@ for line in sys.stdin:          # For ever line in the input from stdin
 print("{0}\t{1}".format(word_total, line_total))
 
 
-hadoop command:
+### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /user/s1240267/data/output/exc-cw1/s1240267_task_2.out \
  -output /user/s1240267/data/output/exc-cw1/s1240267_task_3.out \
@@ -153,12 +150,11 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -reducer t3-reduce.py \
  -file t3-reduce.py
 
-unix command to put everything in 1 file:
+### Unix command to output 1 file ###:
 hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_3.out/part-* | awk '{lines +=$1 ; words +=$2} END {print lines, words}' | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_3.out/summed.txt
 
 
 Task 3 code end
-
 
 command to get results:
 hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_3.out/summed.txt
@@ -175,26 +171,24 @@ ________________________________________________________________________________
 
 Task 4 code begin
 
-mapper:
+### Mapper ###:
 #!/usr/bin/python
 import sys
 import re
 def find_bigrams(input_list):
         return zip(input_list, input_list[1:])
-
 def parse(text):
         return re.compile('\w+').findall(text)
-
 def stringify(bigram):
         return bigram[0] + " " + bigram[1]
-
 lines_read = 0
 for line in sys.stdin:
         tokens = find_bigrams(parse(line))
         for token in tokens:
                 print("{0}\t{1}".format(stringify(token),1))
 
-reducer:
+
+### Reducer ###:
 #!/usr/bin/python
 import sys
 prev_bigram = ""
@@ -218,7 +212,7 @@ for line in sys.stdin:          # For ever line in the input from stdin
 if prev_bigram == bigram:  # Don't forget the last key/value pair
     print("{0}\t{1}".format(prev_bigram, value_total))
 
-hadoop command:
+### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /user/s1240267/data/output/exc-cw1/s1240267_task_2.out \
  -output /user/s1240267/data/output/exc-cw1/s1240267_task_4.out \
@@ -264,16 +258,17 @@ ________________________________________________________________________________
 
 Task 5 code begin
 
-mapper:
+### Mapper ###:
 same as mapper of task4
 
-reducer:
+### Reducer ###:
 same as reducer of task4
 
-combinere:
+### Combiner ###:
 same as reducer of task4
 
-Task 5
+
+### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /user/s1240267/data/output/exc-cw1/s1240267_task_2.out \
  -output /user/s1240267/data/output/exc-cw1/s1240267_task_5.out \
@@ -324,11 +319,10 @@ ________________________________________________________________________________
 
 Task 6 code begin
 
-mapper:
+### Mapper ###:
 None
 
-
-reducer:
+### Reducer ###:
 #!/usr/bin/python
 import sys
 prev_bigram = ""
@@ -338,19 +332,19 @@ top_20=[]
 
 def check_and_add_top_20(bigram, value):
     global top_20
+    # we fill in the array when it had not yet 20 bigrams
     if len(top_20) < 20:
         top_20.append( (bigram, value) )
         top_20 = sorted(top_20, key=lambda tup: tup[1], reverse=True)
     else:
+    # we check if we can replace array value(array is always sorted)
         if value >= top_20[19][1]:
             top_20[19] = (bigram,value)
             top_20 = sorted(top_20, key=lambda tup: tup[1], reverse=True)
-
 def output_top_20():
     global top_20
     for k in top_20:
         print("{0}\t{1}".format(k[1], k[0]))
-
 for line in sys.stdin:         # For ever line in the input from stdin
     try:
         line = line.strip()         # Remove trailing characters
@@ -371,7 +365,7 @@ if prev_bigram == bigram:  # Don't forget the last key/value pair
 output_top_20()
 
 
-hadoop command:
+### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /user/s1240267/data/output/exc-cw1/s1240267_task_5.out \
  -output /user/s1240267/data/output/exc-cw1/s1240267_task_6.out \
@@ -380,7 +374,7 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -file t6-reduce.py
 
 
-unix command to get top 20 in 1 file:
+### Unix command to output 1 file ###:
 hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_6.out/part-* | sort -rn | head -20 | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_6.out/top20.txt
 
 Task 6 code end
@@ -417,7 +411,7 @@ ________________________________________________________________________________
 
 Task 7 code begin
 
-mapper:
+### Mapper ###:
 #!/usr/bin/python
 import sys
 for line in sys.stdin:                  # input from standard input
@@ -428,38 +422,36 @@ for line in sys.stdin:                  # input from standard input
         # use col as the key, pass row as part of the value so reducer can sort it
         print("{0}\t{1} {2}".format(col, row, tokens[col]))
 
-reducer:
+
+### Reducer ###:
 #!/usr/bin/python
 import sys
 prev_col = ""
 value_total = 0
 col = ""
 trans_row = []
-
 def output_row(row, cell_list):
     cell_list = sorted(cell_list, key=lambda tup: tup[0])
+    # we print the row so we can unix sort later
     sys.stdout.write("{0}:".format(row))
     for cell in cell_list:
         sys.stdout.write("{0} ".format(cell[1]))
     print
-
 for line in sys.stdin:          # For ever line in the input from stdin
     line = line.strip()         # Remove trailing characters
     col, value = line.split("\t", 1)
     row, cell = value.split()
-
     # Remember that Hadoop sorts map output by key reducer takes these keys sorted
     if (prev_col != "") and (prev_col != col):
         output_row(prev_col, trans_row)
         del trans_row[:]    #flush cell list
     trans_row.append( (int(row), cell) )
     prev_col = col
-
 if prev_col == col:  # Don't forget the last key/value pair
     output_row(prev_col, trans_row)
 
 
-hadoop command:
+### Hadoop Command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input  /data/assignments/ex1/matrixLarge.txt \
  -output /user/s1240267/data/output/exc-cw1/s1240267_task_7.out \
@@ -469,7 +461,7 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -file t7-reduce.py
 
 
-linux command to get everything in 1 file:
+### Unix command to output 1 file ###:
 hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_7.out/part-* | sort -n | cut -d ":" -f 2- | hdfs dfs -put - /user/s1240267/data/output/exc-cw1/s1240267_task_7.out/transposed.txt
 
 Task 7 code end
@@ -503,12 +495,11 @@ Task 7 results begin
 
 Task 7 results end
 
-
 ________________________________________________________________________________________________
+
 Task 8 code begin
 
 ### Mapper ###:
-
 #!/usr/bin/python
 import sys
 for line in sys.stdin:
@@ -539,7 +530,6 @@ def output_row(data):
 	for i in range(1, len(data) ) :
 		sys.stdout.write(" ({0}, {1})".format(data[i][1], data[i][2]))
 	print
-
 for line in sys.stdin:
 	line = line.strip()
 	info = line.split()
@@ -547,10 +537,9 @@ for line in sys.stdin:
 
 	if (prev_key != "") and (prev_key != key):
 		output_row(results)
-		del results[:]
+		del results[:] # flush buffer
 	results.append(info)
 	prev_key = key
-
 if prev_key == key:
 	output_row(results)
 
@@ -593,24 +582,31 @@ Alridge -->
 
 Task 8 results end
 
-
 ________________________________________________________________________________________________
-Task 9
 
-mapper:
+Task 9 code begin
+
+### Mapper ###:
+
 #!/usr/bin/python
 import sys
 import re
 for line in sys.stdin:
         line = line.strip()
+        # parse line
         line = line.split(" ", 2)
+        # we check only for nice input
         if len(line) == 3:
                 name = line[0]
                 scores = re.compile('\d+').findall(line[2])
                 if len(scores) > 4:
+                        # calculate average
                         avg = sum([ int(s) for s in scores])/float(len(scores))
                         print("{0}\t{1:.2f}".format(name, avg))
-reducer:
+
+
+### Reducer ###:
+
 #!/usr/bin/python
 import sys
 lowest_names = []
@@ -633,6 +629,8 @@ for line in sys.stdin:          # For ever line in the input from stdin
 for name in lowest_names:
         print ("{0}\t{1:.2f}".format(name, lowest_score))
 
+### Hadoop command ###:
+
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input  /user/s1240267/data/output/exc-cw1/s1240267_task_8.out \
  -output /user/s1240267/data/output/exc-cw1/s1240267_task_9.out \
@@ -641,7 +639,7 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -reducer t9-reduce.py \
  -file t9-reduce.py
 
-unix command to put result in 1 file:
+### Unix command to output 1 file ###:
 hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_9.out/part-* | sort -nk 2 | awk '
 BEGIN{s=-1}
 {if (s == -1) {
@@ -652,10 +650,8 @@ else if (s==$2)
 
 Task 9 code end
 
-
 command to get results:
 hdfs dfs -cat /user/s1240267/data/output/exc-cw1/s1240267_task_9.out/min_scores.txt
-
 
 Task 9 results begin
 
