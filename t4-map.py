@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
 import sys
-import re 
+import re
 
 def find_bigrams(input_list):
 	return zip(input_list, input_list[1:])
+
+
 
 def parse(text):
 	return re.compile('\w+').findall(text)
