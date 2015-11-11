@@ -1,5 +1,5 @@
-
-hdfs dfs -ls /user/s1240267/data/output/exc-cw2/s1240267_task_x.out
+hdfs dfs -rm -r /user/s1240267/data/output/exc-cw2/s1240267_task_x.out
+hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_1.out/part-00000 | head -20
 
 
 Task 1
