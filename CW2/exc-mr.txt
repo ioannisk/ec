@@ -1,11 +1,17 @@
 
+hdfs dfs -ls /user/s1240267/data/output/exc-cw2/s1240267_task_x.out
+
+
 Task 1
+
+# TODO: sort files before printing, total ordering sort, parse file names 
+
 
 ### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
- - input /data/assignments/ex2/task1/small/ \
+ -input /data/assignments/ex2/task1/small/ \
  -output /user/s1240267/data/output/exc-cw2/s1240267_task_1.out \
  -mapper t1-map.py \ 
  -file t1-map.py \
- -reducer t2-reduce.py \
- -file t2-reduce.py
+ -reducer t1-reduce.py \
+ -file t1-reduce.py

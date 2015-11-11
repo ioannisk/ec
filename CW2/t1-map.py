@@ -15,6 +15,8 @@ for line in sys.stdin:                  # input from standard input
 
     # find from which file we are reading
     file_name = os.environ["mapreduce_map_input_file"]
+    # format string such that we dont print the whole file path
+    file_name = file_name.split('/')[-1:]
 
     line = line.strip()                 # remove whitespaces
     tokens = parse(line)               # split the line into tokens
