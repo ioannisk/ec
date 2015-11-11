@@ -12,8 +12,10 @@ dic_buffer = {}
 def print_buffer(word_prev):
     string  = word_prev + ":  " +str(len(dic_buffer)) + ":  { "
     # we use i to know when we print the last item of the dic
+    help_list = [i for i in dic_buffer]
+    help_list.sort()
     i = 0
-    for key in dic_buffer:
+    for key in help_list:
         i += 1
         if i == len (dic_buffer):
             string += "({0}, {1}) }}".format(key, dic_buffer[key])
