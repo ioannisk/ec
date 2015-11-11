@@ -10,7 +10,7 @@ word = ""
 dic_buffer = {}
 
 def print_buffer(word_prev):
-    string  = word_prev + "\t" +str(len(dic_buffer)) + "\t"
+    string  = word_prev + "\t"
     # we use i to know when we print the last item of the dic
     i = 0
     for key in dic_buffer:
