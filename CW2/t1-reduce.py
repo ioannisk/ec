@@ -12,9 +12,10 @@ dic_buffer = {}
 def print_buffer(word_prev):
     string  = word_prev + ":  " +str(len(dic_buffer)) + ":  { "
     # we use i to know when we print the last item of the dic
+    # this step wi
     help_list = [int(i.split(".")[0][1:]) for i in dic_buffer]
     help_list.sort()
-    help_list = [("d"+i+".txt") for i in help_list]
+    help_list = [("d"+str(i)+".txt") for i in help_list]
     i = 0
     for key in help_list:
         i += 1
