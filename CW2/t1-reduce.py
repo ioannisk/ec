@@ -6,8 +6,22 @@ prev_word = ""
 word = ""
 
 # buffer for a single word info. Keys are the filenames that the word was found
+# TODO SORT THIS BEFORE PRINTING
 dic_buffer = {}
 
+def print_buffer(word_prev):
+    string  = word_prev + ":  " +str(len(dic_buffer)) + ":  { "
+    # we use i to know when we print the last item of the dic
+    help_list = [i for i in dic_buffer]
+    help_list.sort()
+    i = 0
+    for key in help_list:
+        i += 1
+        if i == len (dic_buffer):
+            string += "({0}, {1}) }}".format(key, dic_buffer[key])
+        else:
+            string += "({0}, {1}), ".format(key, dic_buffer[key])
+    print string
 
 for line in sys.stdin:          # For ever line in the input from stdin
     line = line.strip()         # Remove trailing characters
@@ -28,31 +42,11 @@ for line in sys.stdin:          # For ever line in the input from stdin
 
     else:
         if prev_word:  # write result to stdout
-            string  = prev_word + ":  " +str(len(dic_buffer)) + ":  { "
-            # we use i to know when we print the last item of the dic
-            i = 0
-            for key in dic_buffer:
-                i += 1
-                if i == len (dic_buffer):
-                    string += "({0}, {1}) }}".format(key, dic_buffer[key])
-                else:
-                    string += "({0}, {1}), ".format(key, dic_buffer[key])
-            print string
-
+            print_buffer(prev_word)
         # flush buffer
         dic_buffer.clear()
         prev_word = word
         dic_buffer[file_name] = word_frequency
 
 if prev_word == word:  # Don't forget the last key/value pair
-        string  = prev_word + ":  " +str(len(dic_buffer)) + ":  { "
-        # we use i to know when we print the last item of the dic
-        i = 0
-        for key in dic_buffer:
-            i += 1
-            if i == len (dic_buffer):
-                string += "({0}, {1}) }}".format(key, dic_buffer[key])
-            else:
-                string += "({0}, {1}), ".format(key, dic_buffer[key])
-        print string
-
+    print_buffer(prev_word)
