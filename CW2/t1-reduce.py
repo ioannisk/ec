@@ -19,7 +19,7 @@ def print_buffer(word_prev):
     i = 0
     for key in help_list:
         i += 1
-        if i == len (dic_buffer):
+        if i == len(dic_buffer):
             string += "({0}, {1}) }}".format(key, dic_buffer[key])
         else:
             string += "({0}, {1}), ".format(key, dic_buffer[key])
@@ -30,8 +30,6 @@ for line in sys.stdin:          # For ever line in the input from stdin
     word, file_info = line.split("\t", 1)
     values = file_info.split("\t")
 
-    # TODO change this to be able to support combiners
-    # a combiner might give cat : 2 : {(d1.txt, 2), (d2.txt, 3)} output
     # reducer must be able to parse info about multiple files
 
     # Remember that Hadoop sorts map output by key reducer takes these keys sorted
