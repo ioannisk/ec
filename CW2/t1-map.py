@@ -5,8 +5,8 @@ import os
 import re
 
 # parse line in words.
-# def parse(text):
-#         return re.compile('\w+').findall(text)
+def parse(text):
+        return re.compile('\w+').findall(text)
 
 for line in sys.stdin:                  # input from standard input
     # store token count within line
@@ -19,7 +19,7 @@ for line in sys.stdin:                  # input from standard input
     file_name = file_name.split('/')[-1:][0]
 
     line = line.strip()                 # remove whitespaces
-    tokens = line.split()               # split the line into tokens
+    tokens = parse(line)               # split the line into tokens
 
     for token in tokens:
         if token in token_dic:
