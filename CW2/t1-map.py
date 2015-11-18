@@ -25,7 +25,7 @@ for line in sys.stdin:                  # input from standard input
         for token in tokens:
             if token in token_dic:
                 token_dic[token] += 1
-            else:op
+            else:
                 token_dic[token] = 1
 
         for key in token_dic:
