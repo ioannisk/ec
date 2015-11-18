@@ -15,7 +15,7 @@ def print_buffer(word_prev):
     i = 0
     for key in dic_buffer:
         i += 1
-        if i == len (dic_buffer):
+        if i == len(dic_buffer):
             string += "{0} {1}".format(key, dic_buffer[key])
         else:
             string += "{0} {1})\t ".format(key, dic_buffer[key])
