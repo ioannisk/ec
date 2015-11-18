@@ -5,8 +5,8 @@ import os
 import re
 
 # parse line in words.
-def parse(text):
-        return re.compile('\w+').findall(text)
+# def parse(text):
+#         return re.compile('\w+').findall(text)
 
 for line in sys.stdin:                  # input from standard input
     # store token count within line
@@ -19,15 +19,16 @@ for line in sys.stdin:                  # input from standard input
     file_name = file_name.split('/')[-1:][0]
 
     line = line.strip()                 # remove whitespaces
-    tokens = parse(line)               # split the line into tokens
+    tokens = line.split()               # split the line into tokens
 
-    for token in tokens:
-        if token in token_dic:
-            token_dic[token] += 1
-        else:op
-            token_dic[token] = 1
+    if tokens:
+        for token in tokens:
+            if token in token_dic:
+                token_dic[token] += 1
+            else:op
+                token_dic[token] = 1
 
-    for key in token_dic:
-        # key is the word, token_dic[key] frequency of word
-        print("{0}\t{1}\t{2}".format(key, token_dic[key], file_name))
+        for key in token_dic:
+            # key is the word, token_dic[key] frequency of word
+            print("{0}\t{1}\t{2}".format(key, token_dic[key], file_name))
 
