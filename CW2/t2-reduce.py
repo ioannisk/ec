@@ -4,7 +4,7 @@ import sys
 import math
 
 # number of documents in the corpus
-D = 16.0
+D = 17.0
 
 for line in sys.stdin:          # For ever line in the input from stdin
     line = line.strip()         # Remove trailing characters
