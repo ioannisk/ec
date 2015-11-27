@@ -1,58 +1,21 @@
 #!/usr/bin/python
 
 import sys
+import math
 
-prev_word = ""
-word = ""
-
-# buffer for a single word info. Keys are the filenames that the word was found
-# TODO SORT THIS BEFORE PRINTING
-dic_buffer = {}
-
-def print_buffer(word_prev):
-    string  = word_prev + " : " +str(len(dic_buffer)) + " : { "
-    # we use i to know when we print the last item of the dic
-    # this step wi
-    help_list = [int(i.split(".")[0][1:]) for i in dic_buffer]
-    help_list.sort()
-    help_list = [("d"+str(i)+".txt") for i in help_list]
-    i = 0
-    for key in help_list:
-        i += 1
-        if i == len (dic_buffer):
-            string += "({0}, {1}) }}".format(key, dic_buffer[key])
-        else:
-            string += "({0}, {1}), ".format(key, dic_buffer[key])
-    print string
+# number of documents in the corpus
+D = 16.0
 
 for line in sys.stdin:          # For ever line in the input from stdin
     line = line.strip()         # Remove trailing characters
-    word, file_info = line.split("\t", 1)
-    values = file_info.split("\t")
-
-    # reducer must be able to parse info about multiple files
-
-    # Remember that Hadoop sorts map output by key reducer takes these keys sorted
-    if prev_word == word:
-        for value in values:
-            file_name, word_frequency = value.split()
-            word_frequency = int(word_frequency)
-
-            if file_name in dic_buffer:
-                dic_buffer[file_name] += word_frequency
-            else:
-                dic_buffer[file_name] = word_frequency
-
+    # n is the |d e D : t e d|
+    key, n, info = line.split("\t", 2)
+    if info=="NOT_IN_D1":
+        print key+", d1.txt = 0"
     else:
-        if prev_word:  # write result to stdout
-            print_buffer(prev_word)
-        # flush buffer
-        dic_buffer.clear()
-        prev_word = word
-        for value in values:
-            file_name, word_frequency = value.split()
-            word_frequency = int(word_frequency)
-            dic_buffer[file_name] = word_frequency
+        tf = int(info.spit()[1])
+        idf = math.log10( D/(1 +n) )
+        tf_idf = tf*idf
+        print key+", d1.txt ="+ str(tf_idf)
 
-if prev_word == word:  # Don't forget the last key/value pair
-    print_buffer(prev_word)
+
