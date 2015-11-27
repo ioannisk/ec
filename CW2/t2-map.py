@@ -17,7 +17,7 @@ parse_info = {
 terms = []
 f = open('terms.txt', 'r')
 for line in f:
-    terms.append(line)
+    terms.append(line.strip())
 f.close
 
 for line in sys.stdin:
@@ -36,6 +36,7 @@ for line in sys.stdin:
     line = line.split()
     # check if key is in the terms document
     if key in terms:
+
         # save the number of documents that term appears
         n = line.pop(0)
         # reconstruct invertes list in a nice format so we can avoid parsing it again in the reducer
