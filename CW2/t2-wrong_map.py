@@ -10,7 +10,12 @@ parse_info = {
     ")": " ",
     "(": ""
 }
+# parse part1 output, keep only words that exist in d1.txt
+# calculate tf-idf, reducer is just bin/cat and n=1
 
+
+# parse part1 output, key,  |d ∈ D : t ∈ d| that is the second number, n=17
+# and  f(t, d) is the number after d1.txt
 
 
 # TODO parse in reducer, way faster because mapper has to parse everything
@@ -35,4 +40,5 @@ for line in sys.stdin:
         # reconstruct invertes list in a nice format so we can avoid parsing it again in the reducer
         buff = ""
         for i in range(0,len(b),2):
-            buff += (b[i]+" "+b[i+1]+" ")
+            if b[i] = "d1": # or smth like that
+                buff += (b[i]+" "+b[i+1]+" ")
