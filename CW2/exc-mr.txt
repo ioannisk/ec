@@ -1,11 +1,13 @@
 hdfs dfs -rm -r /user/s1240267/data/output/exc-cw2/s1240267_task_x.out
-hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_2.out/part-00000 | head -20
+hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_3_1.out/part-00000 | head -20
 
 
 Task 1
 
 # TODO: sort files before printing, total ordering sort,
 
+>>>>DOnt use 1 reducer
+>>>> write another mapreduce job with cat as mapper and reducer to do the final sorting.
 
 ### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
@@ -34,17 +36,20 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -file t2-reduce.py \
  -file terms.txt
 
-Task3
+Task3_1
+>>>>>> TODO write a combiner, reducer cant be used because it only outputs the max
+>>>>>> increase number of reducers, write linux command to get the max
+
 ### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /data/assignments/ex2/task2/logsLarge.txt \
  -output /user/s1240267/data/output/exc-cw2/s1240267_task_3_1.out \
  -numReduceTasks 1 \
- -mapper t2-map.py \
- -file t2-map.py \
- -reducer t2-reduce.py \
- -file t2-reduce.py \
- -file terms.txt
+ -mapper t3_1_map.py \
+ -file t3_1_map.py \
+ -reducer t3_1_reduce.py \
+ -file t3_1_reduce.py \
+ -numReduceTasks 5
 
 
 
