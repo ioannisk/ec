@@ -1,5 +1,5 @@
 hdfs dfs -rm -r /user/s1240267/data/output/exc-cw2/s1240267_task_x.out
-hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_1.out/part-00000 | head -20
+hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_2.out/part-00000 | head -20
 
 
 Task 1
@@ -18,6 +18,34 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -file t1-combiner.py \
  -reducer t1-reduce.py \
  -file t1-reduce.py
+
+
+
+
+Task 2
+### Hadoop command ###:
+hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /user/s1240267/data/output/exc-cw2/s1240267_task_1.out \
+ -output /user/s1240267/data/output/exc-cw2/s1240267_task_2.out \
+ -numReduceTasks 1 \
+ -mapper t2-map.py \
+ -file t2-map.py \
+ -reducer t2-reduce.py \
+ -file t2-reduce.py \
+ -file terms.txt
+
+Task3
+### Hadoop command ###:
+hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /data/assignments/ex2/task2/logsLarge.txt \
+ -output /user/s1240267/data/output/exc-cw2/s1240267_task_3_1.out \
+ -numReduceTasks 1 \
+ -mapper t2-map.py \
+ -file t2-map.py \
+ -reducer t2-reduce.py \
+ -file t2-reduce.py \
+ -file terms.txt
+
 
 
 
