@@ -20,7 +20,7 @@ def check_and_add_top_10(key, value):
 def output_top_10():
     global top_10
     for k in top_10:
-        print("{0}\t{1}").format(k[0], k[1])
+        print("{0}\t{1}").format(k[1], k[0])
 
 
 for line in sys.stdin:
