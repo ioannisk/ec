@@ -5,8 +5,22 @@ import sys
 prev_key = ""
 key = ""
 value_total = 0
-max_value = 0
-max_key = ""
+top_10 = []
+
+def check_and_add_top_10(key, value):
+    global top_10
+    if len(top_10) < 10:
+        top_10.append((key, value))
+        top_10 = sorted(top_10, key=lambda tup: tup[1], reverse=True)
+    else:
+        if value >= top_10[9][1]:
+            top_10[9] = (key, value)
+            top_10 = sorted(top_10, key=lambda tup: tup[1], reverse=True)
+
+def output_top_10():
+    global top_10
+    for k in top_10:
+        print("{0}\t{1}").format(k[0], k[1])
 
 
 for line in sys.stdin:
@@ -16,10 +30,12 @@ for line in sys.stdin:
     if prev_key == key:
         value_total += value
     else:
-        if value_total > max_value:
-            max_value = value_total
-            max_key = prev_key
+        if prev_key:
+            check_and_add_top_10(prev_key, value_total)
         value_total = value
         prev_key = key
 
-print ("{0}\t{1}".format(max_key, max_value))
+if prev_key == key:
+    check_and_add_top_10(prev_key, value_total)
+
+output_top_10

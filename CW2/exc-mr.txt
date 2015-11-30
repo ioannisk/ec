@@ -25,6 +25,7 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
 
 
 Task 2
+>>>>>>>>> todo, words that dont appear in the corpus should get value of 0 (electronic in terms.txt), currently gets ignored
 ### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /user/s1240267/data/output/exc-cw2/s1240267_task_1.out \
@@ -49,6 +50,8 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -file t3_1_map.py \
  -reducer t3_1_reduce.py \
  -file t3_1_reduce.py \
+ -combiner t3_1_combine.py \
+ -file t3_1_combine.py \
  -numReduceTasks 5
 
 

@@ -17,4 +17,5 @@ for line in sys.stdin:
         req_http = line[7]
         reply = line[8]
         bytes = line[9]
-        print('{0}\t{1}'.format(req_web_server, 1))
+        if reply == '404':
+            print('{0}\t{1}'.format(host, 1))
