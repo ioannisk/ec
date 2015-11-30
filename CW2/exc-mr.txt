@@ -55,6 +55,19 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -numReduceTasks 5
 
 
+Task3_2
+hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /data/assignments/ex2/task2/logsLarge.txt \
+ -output /user/s1240267/data/output/exc-cw2/s1240267_task_3_2.out \
+ -numReduceTasks 5 \
+ -mapper t3_2_map.py \
+ -file t3_2_map.py \
+ -reducer t3_2_reduce.py \
+ -file t3_2_reduce.py \
+ -combiner t3_2_combine.py \
+ -file t3_2_combine.py
+
+
 
 
  -partitioner org.apache.hadoop.mapred.lib.KeyFieldBasedPartitioner

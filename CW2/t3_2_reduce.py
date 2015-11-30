@@ -38,4 +38,4 @@ for line in sys.stdin:
 if prev_key == key:
     check_and_add_top_10(prev_key, value_total)
 
-output_top_10
+output_top_10()
