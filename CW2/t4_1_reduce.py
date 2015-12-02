@@ -29,12 +29,8 @@ for line in sys.stdin:
     line = line.strip()
     key, value = line.split("\t", 1)
     #datetime(2006, 6, 14, 13, 0, tzinfo=gmt1)
-    if prev_key == key:
-        pass
-    else:
-        if prev_key:
-            check_and_add_top_10(prev_key, value)
-        prev_key = key
+    check_and_add_top_10(prev_key, value)
+
 
 output_top_10()
 

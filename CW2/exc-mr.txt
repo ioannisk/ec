@@ -1,5 +1,5 @@
 hdfs dfs -rm -r /user/s1240267/data/output/exc-cw2/s1240267_task_x.out
-hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_3_2.out/part-00000 | head -20
+hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_3_3.out/part-00000 | head -20
 
 
 Task 1
@@ -81,6 +81,17 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -reducer t3_3_reduce.py \
  -file t3_3_reduce.py
 
+
+
+Task4_1
+hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /data/assignments/ex2/task3/stackLarge.txt  \
+ -output /user/s1240267/data/output/exc-cw2/s1240267_task_4_1.out \
+ -numReduceTasks 5 \
+ -mapper t4_1_map.py \
+ -file t4_1_map.py \
+ -reducer t4_1_reduce.py \
+ -file t4_1_reduce.py
 
 
 
