@@ -27,6 +27,7 @@ def output_date(prev_key):
         print prev_key +"\t"+str(dates_list[0])
     else:
         print prev_key +"\t"+ str(dates_list[1]-dates_list[0])
+    dates_list=[]
 
 
 for line in sys.stdin:

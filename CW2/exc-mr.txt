@@ -67,8 +67,20 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -combiner t3_2_combine.py \
  -file t3_2_combine.py
 
-
 hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_3_2.out/part-* | sort -rn | head -10 | hdfs dfs -put - /user/s1240267/data/output/exc-cw2/s1240267_task_3_2.out/top10.txt
+
+
+
+Task3_3
+hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /data/assignments/ex2/task2/logsLarge.txt \
+ -output /user/s1240267/data/output/exc-cw2/s1240267_task_3_3.out \
+ -numReduceTasks 5 \
+ -mapper t3_3_map.py \
+ -file t3_3_map.py \
+ -reducer t3_3_reduce.py \
+ -file t3_3_reduce.py
+
 
 
 
