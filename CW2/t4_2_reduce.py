@@ -17,11 +17,7 @@ def print_out():
     global max_key
     global max_question_list
     global max_value_total
-    sys.stdout.write(key+"\t->\t")
-    for i in max_question_list:
-        sys.stdout.write("PostId, ")
-    sys.stdout.write("\n")
-    sys.stdout.write(str(max_value)+"\t->\t")
+    sys.stdout.write(max_key+"\t->\t")
     for i in max_question_list:
         sys.stdout.write("{0}, ".format(i))
 

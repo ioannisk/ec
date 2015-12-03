@@ -96,4 +96,18 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
 hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_4_1.out/part-* | sort -rn -k 2| head -10 | hdfs dfs -put - /user/s1240267/data/output/exc-cw2/s1240267_task_4_1.out/top10.txt
 
 
+Task4_2
+hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /data/assignments/ex2/task3/stackLarge.txt  \
+ -output /user/s1240267/data/output/exc-cw2/s1240267_task_4_2.out \
+ -numReduceTasks 10 \
+ -mapper t4_2_map.py \
+ -file t4_2_map.py \
+ -reducer t4_2_reduce.py \
+ -file t4_2_reduce.py
+
+
+
+
+
  -partitioner org.apache.hadoop.mapred.lib.KeyFieldBasedPartitioner
