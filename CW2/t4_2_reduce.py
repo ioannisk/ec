@@ -32,10 +32,10 @@ for line in sys.stdin:
         if prev_key:
             if max_value <= value_total:
                 max_value = value_total
-                max_key = key
+                max_key = prev_key
                 max_question_list = questions_list
-                questions_list = []
 
+        questions_list = []
         value_total = value
         prev_key = key
         questions_list.append(Id)
@@ -43,8 +43,9 @@ for line in sys.stdin:
 if prev_key == key:
     if max_value <= value_total:
         max_value = value_total
-        max_key = key
+        max_key = prev_key
         max_question_list = questions_list
         questions_list = []
 
 print_out()
+print str(len(max_question_list))
