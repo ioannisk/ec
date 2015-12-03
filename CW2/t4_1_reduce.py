@@ -21,14 +21,13 @@ def check_and_add_top_10(key, value):
 def output_top_10():
     global top_10
     for k in top_10:
-        print("{0}\t{1}").format(k[1], k[0])
+        print("{0}\t{1}").format(k[0], k[1])
 
 
 
 for line in sys.stdin:
     line = line.strip()
     key, value = line.split("\t", 1)
-    #datetime(2006, 6, 14, 13, 0, tzinfo=gmt1)
     check_and_add_top_10(key, value)
 
 
