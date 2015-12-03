@@ -1,5 +1,5 @@
 hdfs dfs -rm -r /user/s1240267/data/output/exc-cw2/s1240267_task_x.out
-hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_4_1.out/part-00000 | head -20
+hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_4_2.out/part-00000 | head -20
 
 
 Task 1
@@ -106,6 +106,7 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -reducer t4_2_reduce.py \
  -file t4_2_reduce.py
 
+hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_4_1.out/part-* | sort -rn -k 2| head -10 | hdfs dfs -put - /user/s1240267/data/output/exc-cw2/s1240267_task_4_1.out/top10.txt
 
 
 

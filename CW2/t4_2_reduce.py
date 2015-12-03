@@ -47,5 +47,7 @@ if prev_key == key:
         max_question_list = questions_list
         questions_list = []
 
+#we print the number of elements in order to be able to tell which reducer has the max
+sys.stdout.write( "{0}\t".format(str(len(max_question_list)))  )
 print_out()
-print str(len(max_question_list))
+
