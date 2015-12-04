@@ -10,7 +10,7 @@ word = ""
 dic_buffer = {}
 
 def print_buffer(word_prev):
-    string  = word_prev + " : " +str(len(dic_buffer)) + " : { "
+    string  = word_prev + "\t: " +str(len(dic_buffer)) + " : { "
     # we use i to know when we print the last item of the dic
     # this step wi
     help_list = [int(i.split(".")[0][1:]) for i in dic_buffer]

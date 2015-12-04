@@ -1,8 +1,9 @@
 hdfs dfs -rm -r /user/s1240267/data/output/exc-cw2/s1240267_task_x.out
+hdfs dfs -rm -r /user/s1240267/ex2/s1240267_task_x.out
 hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_4_2.out/part-00000 | head -20
 
 
-Task 1
+Task 1 code begin
 
 # TODO: sort files before printing, total ordering sort,
 
@@ -12,8 +13,8 @@ Task 1
 ### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /data/assignments/ex2/task1/large/ \
- -output /user/s1240267/data/output/exc-cw2/s1240267_task_1.out \
- -numReduceTasks 1 \
+ -output /user/s1240267/ex2/s1240267_task_1.out \
+ -numReduceTasks 10 \
  -mapper t1-map.py \
  -file t1-map.py \
  -combiner t1-combiner.py \
@@ -106,8 +107,9 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -reducer t4_2_reduce.py \
  -file t4_2_reduce.py
 
-hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_4_1.out/part-* | sort -rn -k 2| head -10 | hdfs dfs -put - /user/s1240267/data/output/exc-cw2/s1240267_task_4_1.out/top10.txt
+hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_4_2.out/part-* | sort -rn | head -1 | awk 'BEGIN{FS=OFS="\t"}{$1="";}1'| hdfs dfs -put - /user/s1240267/data/output/exc-cw2/s1240267_task_4_2.out/top1.txt
 
+try that as well awk 'BEGIN{FS=OFS="\t"}{$1="";sub("\t","")}1'  file
 
 
 
