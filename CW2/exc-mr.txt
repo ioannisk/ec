@@ -1,20 +1,167 @@
 hdfs dfs -rm -r /user/s1240267/data/output/exc-cw2/s1240267_task_x.out
 hdfs dfs -rm -r /user/s1240267/ex2/s1240267_task_x.out
+hdfs dfs -cat /user/s1240267/ex2/s1240267_task_1.out/part-00000 | head -10
 hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_4_2.out/part-00000 | head -20
+
 
 
 Task 1 code begin
 
-# TODO: sort files before printing, total ordering sort,
+### Mapper ###:
 
->>>>DOnt use 1 reducer
->>>> write another mapreduce job with cat as mapper and reducer to do the final sorting.
+#!/usr/bin/python
+
+import sys
+import os
+import re
+
+# parse line in words.
+# def parse(text):
+#         return re.compile('\w+').findall(text)
+
+for line in sys.stdin:                  # input from standard input
+    # store token count within line
+    # to reduce calculations for combiner and reducer
+    token_dic  = {}
+
+    # find from which file we are reading
+    file_name = os.environ["mapreduce_map_input_file"]
+    # format string such that we dont print the whole file path
+    file_name = file_name.split('/')[-1:][0]
+
+    line = line.strip()                 # remove whitespaces
+    tokens = line.split()               # split the line into tokens
+
+    if tokens:
+        for token in tokens:
+            if token in token_dic:
+                token_dic[token] += 1
+            else:
+                token_dic[token] = 1
+
+        for key in token_dic:
+            # key is the word, token_dic[key] frequency of word
+            print("{0}\t{1}\t{2}".format(key, token_dic[key], file_name))
+
+
+### Combiner ###:
+
+#!/usr/bin/python
+import sys
+prev_word = ""
+word = ""
+
+# buffer for a single word info. Keys are the filenames that the word was found
+# TODO SORT THIS BEFORE PRINTING
+dic_buffer = {}
+
+def print_buffer(word_prev):
+    string  = word_prev + "\t"
+    # we use i to know when we print the last item of the dic
+    i = 0
+    for key in dic_buffer:
+        i += 1
+        if i == len(dic_buffer):
+            string += "{0} {1}".format(key, dic_buffer[key])
+        else:
+            string += "{0} {1})\t ".format(key, dic_buffer[key])
+    print string
+
+for line in sys.stdin:          # For ever line in the input from stdin
+    line = line.strip()         # Remove trailing characters
+    word, value = line.split("\t", 1)
+
+    # TODO change this to be able to support combiners
+    # a combiner might give cat : 2 : {(d1.txt, 2), (d2.txt, 3)} output
+    # reducer must be able to parse info about multiple files
+    word_frequency, file_name = value.split("\t", 1)
+    word_frequency = int(word_frequency)
+
+    # Remember that Hadoop sorts map output by key reducer takes these keys sorted
+    if prev_word == word:
+        if file_name in dic_buffer:
+            dic_buffer[file_name] += word_frequency
+        else:
+            dic_buffer[file_name] = word_frequency
+
+    else:
+        if prev_word:  # write result to stdout
+            print_buffer(prev_word)
+        # flush buffer
+        dic_buffer.clear()
+        prev_word = word
+        dic_buffer[file_name] = word_frequency
+
+if prev_word == word:  # Don't forget the last key/value pair
+    print_buffer(prev_word)
+
+### Reducer ###:
+
+#!/usr/bin/python
+import sys
+prev_word = ""
+word = ""
+
+# buffer for a single word info. Keys are the filenames that the word was found
+# TODO SORT THIS BEFORE PRINTING
+dic_buffer = {}
+
+def print_buffer(word_prev):
+    string  = word_prev + "\t: " +str(len(dic_buffer)) + " : { "
+    # we use i to know when we print the last item of the dic
+    # this step wi
+    help_list = [int(i.split(".")[0][1:]) for i in dic_buffer]
+    help_list.sort()
+    help_list = [("d"+str(i)+".txt") for i in help_list]
+    i = 0
+    for key in help_list:
+        i += 1
+        if i == len(dic_buffer):
+            string += "({0}, {1}) }}".format(key, dic_buffer[key])
+        else:
+            string += "({0}, {1}), ".format(key, dic_buffer[key])
+    print string
+
+for line in sys.stdin:          # For ever line in the input from stdin
+    line = line.strip()         # Remove trailing characters
+    word, file_info = line.split("\t", 1)
+    values = file_info.split("\t")
+
+    # reducer must be able to parse info about multiple files
+
+    # Remember that Hadoop sorts map output by key reducer takes these keys sorted
+    if prev_word == word:
+        for value in values:
+            file_name, word_frequency = value.split()
+            word_frequency = int(word_frequency)
+
+            if file_name in dic_buffer:
+                dic_buffer[file_name] += word_frequency
+            else:
+                dic_buffer[file_name] = word_frequency
+
+    else:
+        if prev_word:  # write result to stdout
+            print_buffer(prev_word)
+        # flush buffer
+        dic_buffer.clear()
+        prev_word = word
+        for value in values:
+            file_name, word_frequency = value.split()
+            word_frequency = int(word_frequency)
+            dic_buffer[file_name] = word_frequency
+
+if prev_word == word:  # Don't forget the last key/value pair
+    print_buffer(prev_word)
+
 
 ### Hadoop command ###:
+we use 2 jobs, the second one is just for sorting
+
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /data/assignments/ex2/task1/large/ \
- -output /user/s1240267/ex2/s1240267_task_1.out \
- -numReduceTasks 10 \
+ -output /user/s1240267/ex2/s1240267_task_1_help.out \
+ -numReduceTasks 5 \
  -mapper t1-map.py \
  -file t1-map.py \
  -combiner t1-combiner.py \
@@ -22,44 +169,315 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -reducer t1-reduce.py \
  -file t1-reduce.py
 
+hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
+ -input /user/s1240267/ex2/s1240267_task_1_help.out \
+ -output /user/s1240267/ex2/s1240267_task_1.out \
+ -numReduceTasks 1 \
+ -mapper /bin/cat \
+ -reducer /bin/cat
+
+
+Task 1 code end
+
+Task 1 results begin
+
+"   : 2 : { (d7.txt, 11), (d11.txt, 33) }
+"'A : 1 : { (d15.txt, 3) }
+"'Abimelech : 1 : { (d1.txt, 1) }
+"'After : 1 : { (d15.txt, 1) }
+"'Ah!   : 1 : { (d15.txt, 1) }
+"'Ah!'  : 1 : { (d15.txt, 1) }
+"'Ah,   : 1 : { (d15.txt, 2) }
+"'Ah,'  : 1 : { (d15.txt, 1) }
+"'Alright,' : 1 : { (d2.txt, 1) }
+"'And   : 1 : { (d15.txt, 3) }
+
+Task 1 results end
+
+
+Task 2 code begin
+
+### maper ###
+
+#!/usr/bin/python
+import sys
+parse_info = {
+    "{": "",
+    "}": "",
+    ",": "",
+    ":": "",
+    ")": " ",
+    "(": ""
+}
+# parse part1 output, keep only words that exist in d1.txt
+
+terms = []
+f = open('terms.txt', 'r')
+for line in f:
+    terms.append(line.strip())
+f.close
+
+for line in sys.stdin:
+    # parse inverted list input
+    # remove semantic characters so we can split
+    line = line.strip()
+    line = line.split()
+    # we save the key so it wont get affected by the strinf parsing (key might contain :, {, etc...)
+    key = line.pop(0)
+    line = " ".join(line)
+    # removing {, :, ect
+    for k in parse_info:
+        # TODO replace the letter from dic equivilant
+        line = line.replace(k, "")
+    line = line.strip()
+    line = line.split()
+    # check if key is in the terms document
+    if key in terms:
+        # save the number of documents that term appears
+        n = line.pop(0)
+        # reconstruct invertes list in a nice format so we can avoid parsing it again in the reducer
+        buff = "NOT_IN_D1"
+        for i in range(0,len(line),2):
+            # output
+            if line[i] == "d1.txt":
+                buff = (line[i]+" "+line[i+1])
+            print key +"\t" + n + "\t" + buff
 
 
 
-Task 2
->>>>>>>>> todo, words that dont appear in the corpus should get value of 0 (electronic in terms.txt), currently gets ignored
+### reducer ###
+#!/usr/bin/python
+import sys
+import math
+prev_key = ""
+# number of documents in the corpus
+D = 17.0
+
+for line in sys.stdin:          # For ever line in the input from stdin
+    line = line.strip()         # Remove trailing characters
+    # n is the |d e D : t e d|
+    key, n, info = line.split("\t")
+    if prev_key != key:
+        if info=="NOT_IN_D1":
+            print key+", d1.txt = 0"
+        else:
+            tf = int(info.split()[1])
+            idf = math.log10( D/(1 +int(n)))
+            tf_idf = tf*idf
+            print key+", d1.txt ="+ str(tf_idf)
+    prev_key = key
+
+
 ### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
- -input /user/s1240267/data/output/exc-cw2/s1240267_task_1.out \
- -output /user/s1240267/data/output/exc-cw2/s1240267_task_2.out \
- -numReduceTasks 1 \
+ -input /user/s1240267/ex2/s1240267_task_1.out \
+ -output /user/s1240267/ex2/s1240267_task_2.out \
  -mapper t2-map.py \
  -file t2-map.py \
  -reducer t2-reduce.py \
  -file t2-reduce.py \
  -file terms.txt
 
-Task3_1
->>>>>> TODO write a combiner, reducer cant be used because it only outputs the max
->>>>>> increase number of reducers, write linux command to get the max
+#command to get everythin in 1 file
+hdfs dfs -cat /user/s1240267/ex2/s1240267_task_2.out/part-* | hdfs dfs -put - /user/s1240267/ex2/s1240267_task_2.out/final.txt
+
+Task 2 code end
+
+Task 2 results begin
+
+family, d1.txt =1.14151090877
+agreement, d1.txt =0.531478917042
+horse, d1.txt =2.57155048062
+monument, d1.txt =0.62838893005
+child, d1.txt =6.524311868
+Lassiter, d1.txt = 0
+
+Task 2 results end
+
+Task 3_1 code begin
+
+### mapper ###
+#!/usr/bin/python
+import sys
+for line in sys.stdin:
+    line = line.strip()
+    line = line.split()
+    # if the lenght of the split is not 10 that means we have malformed input, we can ignore it
+    if len(line) == 10:
+        # we parse the input
+        host = line[0]
+        timestamp = line[3] + line[4]
+        # req_method+req_dir+req_http concatenated are the whole request
+        req_method = line[5]
+        req_web_server  = line[6]
+        req_http = line[7]
+        reply = line[8]
+        bytes = line[9]
+        print('{0}\t{1}'.format(req_web_server, 1))
+
+
+### combiner ####
+
+#!/usr/bin/python
+import sys
+prev_key = ""
+key = ""
+value_total = 0
+for line in sys.stdin:
+    line = line.strip()
+    key, value = line.split("\t", 1)
+    value = int(value)
+    if prev_key == key:
+        value_total += value
+    else:
+        if prev_key:
+            print ("{0}\t{1}".format(prev_key, value_total))
+        value_total = value
+        prev_key = key
+
+if prev_key == key:
+    print ("{0}\t{1}".format(prev_key, value_total))
+
+
+
+### reducer ####
+
+#!/usr/bin/python
+import sys
+prev_key = ""
+key = ""
+value_total = 0
+max_value = 0
+max_key = ""
+for line in sys.stdin:
+    line = line.strip()
+    key, value = line.split("\t", 1)
+    value = int(value)
+    if prev_key == key:
+        value_total += value
+    else:
+        if value_total > max_value:
+            max_value = value_total
+            max_key = prev_key
+        value_total = value
+        prev_key = key
+
+print ("{0}\t{1}".format(max_key, max_value))
+
 
 ### Hadoop command ###:
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /data/assignments/ex2/task2/logsLarge.txt \
- -output /user/s1240267/data/output/exc-cw2/s1240267_task_3_1.out \
- -numReduceTasks 1 \
+ -output /user/s1240267/ex2/s1240267_task_3_1.out \
+ -numReduceTasks 5 \
  -mapper t3_1_map.py \
  -file t3_1_map.py \
  -reducer t3_1_reduce.py \
  -file t3_1_reduce.py \
  -combiner t3_1_combine.py \
- -file t3_1_combine.py \
- -numReduceTasks 5
+ -file t3_1_combine.py
 
 
-Task3_2
+# it is more efficient to use sort than a second map/reduce job because each reducer outputs 1 line
+hdfs dfs -cat /user/s1240267/ex2/s1240267_task_3_1.out/part-* | sort -rn -k 2 | head -1 |hdfs dfs -put - /user/s1240267/ex2/s1240267_task_3_1.out/max.txt
+
+Task 3_1 code end
+
+Task 3_1 results begin
+
+/images/NASA-logosmall.gif  97267
+
+Task 3_1 results end
+
+Task 3_2 code begin
+
+### mapper ###
+#!/usr/bin/python
+import sys
+for line in sys.stdin:
+    line = line.strip()
+    line = line.split()
+    # if the lenght of the split is not 10 that means we have malformed input, we can ignore it
+    if len(line) == 10:
+        # we parse the input
+        host = line[0]
+        timestamp = line[3] + line[4]
+        # req_method+req_dir+req_http concatenated are the whole request
+        req_method = line[5]
+        req_web_server  = line[6]
+        req_http = line[7]
+        reply = line[8]
+        bytes = line[9]
+        if reply == '404':
+            print('{0}\t{1}'.format(host, 1))
+
+### combiner ###
+
+#!/usr/bin/python
+import sys
+prev_key = ""
+key = ""
+value_total = 0
+for line in sys.stdin:
+    line = line.strip()
+    key, value = line.split("\t", 1)
+    value = int(value)
+    if prev_key == key:
+        value_total += value
+    else:
+        if prev_key:
+            print ("{0}\t{1}".format(prev_key, value_total))
+        value_total = value
+        prev_key = key
+
+if prev_key == key:
+    print ("{0}\t{1}".format(prev_key, value_total))
+
+
+### reducer ###
+#!/usr/bin/python
+import sys
+prev_key = ""
+key = ""
+value_total = 0
+top_10 = []
+def check_and_add_top_10(key, value):
+    global top_10
+    if len(top_10) < 10:
+        top_10.append((key, value))
+        top_10 = sorted(top_10, key=lambda tup: tup[1], reverse=True)
+    else:
+        if value >= top_10[9][1]:
+            top_10[9] = (key, value)
+            top_10 = sorted(top_10, key=lambda tup: tup[1], reverse=True)
+
+def output_top_10():
+    global top_10
+    for k in top_10:
+        print("{0}\t{1}").format(k[1], k[0])
+
+
+for line in sys.stdin:
+    line = line.strip()
+    key, value = line.split("\t", 1)
+    value = int(value)
+    if prev_key == key:
+        value_total += value
+    else:
+        if prev_key:
+            check_and_add_top_10(prev_key, value_total)
+        value_total = value
+        prev_key = key
+
+if prev_key == key:
+    check_and_add_top_10(prev_key, value_total)
+
+output_top_10()
+
+### Hadoop ###
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /data/assignments/ex2/task2/logsLarge.txt \
- -output /user/s1240267/data/output/exc-cw2/s1240267_task_3_2.out \
+ -output /user/s1240267/ex2/s1240267_task_3_2.out \
  -numReduceTasks 5 \
  -mapper t3_2_map.py \
  -file t3_2_map.py \
@@ -68,14 +486,119 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
  -combiner t3_2_combine.py \
  -file t3_2_combine.py
 
-hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_3_2.out/part-* | sort -rn | head -10 | hdfs dfs -put - /user/s1240267/data/output/exc-cw2/s1240267_task_3_2.out/top10.txt
+
+# It is efficient to use sort beacuse each reducer outputs only 10 rows
+hdfs dfs -cat /user/s1240267/ex2/s1240267_task_3_2.out/part-* | sort -rn | head -10 | hdfs dfs -put - /user/s1240267/ex2/s1240267_task_3_2.out/top10.txt
+
+Task 3_2 code end
+
+Task 3_2 results begin
+
+62  dialip-217.den.mmc.com
+47  piweba3y.prodigy.com
+44  155.148.25.4
+39  maz3.maz.net
+38  gate.barr.com
+37  ts8-1.westwood.ts.ucla.edu
+37  nexus.mlckew.edu.au
+37  m38-370-9.mit.edu
+37  204.62.245.32
+35  scooter.pa-x.dec.com
+
+Task 3_2 results end
+
+
+Task 3_3 code begin
+
+### mapper ####
+#!/usr/bin/python
+
+import sys
+import re
+
+for line in sys.stdin:
+    line = line.strip()
+    line = line.split()
+    # if the lenght of the split is not 10 that means we have malformed input, we can ignore it
+    if len(line) == 10:
+        # we parse the input
+        host = line[0]
+        timestamp = line[3] + line[4]
+        # req_method+req_dir+req_http concatenated are the whole request
+        req_method = line[5]
+        req_web_server  = line[6]
+        req_http = line[7]
+        reply = line[8]
+        bytes = line[9]
+        parse_date = re.compile('\w+').findall(line[3])
+        help_str = ""
+        for token in parse_date:
+            help_str += token+" "
+        print('{0}\t{1}'.format(host, help_str))
+
+
+### reducer ####
+#!/usr/bin/python
+
+import sys
+import re
+import datetime
+
+prev_key = ""
+key = ""
+dates_list = []
+
+
+def check_and_add_date(key, date):
+    #datetime.timedelta = (days, seconds)
+    global dates_list
+    if len(dates_list) < 2:
+        dates_list.append(date)
+        dates_list.sort()
+    else:
+        if date >= dates_list[1]:
+            dates_list[1] = date
+        elif date <= dates_list[0]:
+            dates_list[0] = date
+
+def output_date(prev_key):
+    global dates_list
+    if len(dates_list)==1:
+        print prev_key +"\t"+str(dates_list[0])
+    else:
+        print prev_key +"\t"+ str(dates_list[1]-dates_list[0])
+    dates_list=[]
+
+
+for line in sys.stdin:
+    line = line.strip()
+    key, value = line.split("\t", 1)
+    #datetime(2006, 6, 14, 13, 0, tzinfo=gmt1)
+    date = value.split()
+    day = int(date[0])
+    month = 8
+    year = int(date[2])
+    hours = int(date[3])
+    minutes = int(date[4])
+    seconds = int(date[5])
+    d = datetime.datetime(year, month, day, hours, minutes, seconds)
+    if prev_key == key:
+        check_and_add_date(key, d)
+    else:
+        if prev_key:
+            output_date(prev_key)
+        prev_key = key
+        check_and_add_date(key, d)
+
+if prev_key == key:
+    output_date(prev_key)
 
 
 
-Task3_3
+### Hadoop ####
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /data/assignments/ex2/task2/logsLarge.txt \
- -output /user/s1240267/data/output/exc-cw2/s1240267_task_3_3.out \
+ -output /user/s1240267/ex2/s1240267_task_3_3.out \
  -numReduceTasks 5 \
  -mapper t3_3_map.py \
  -file t3_3_map.py \
@@ -84,33 +607,214 @@ hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.
 
 
 
-Task4_1
+Task 3_3 code end
+
+Task 3_3 results begin
+
+001.msy4.communique.net 0:00:17
+01-dynamic-c.wokingham.luna.net 0:47:13
+02-17-05.comsvc.calpoly.edu 0:03:02
+0875pr3e.pro.rpslmc.edu 0:01:38
+1.ts1.mnet.medstroms.se 3 days, 0:53:00
+107.tcom.co.uk  0:00:49
+12-102md.acs.calpoly.edu    0:00:12
+12-105da.acs.calpoly.edu    0:13:19
+12.ts1.mnet.medstroms.se    1995-08-09 04:37:50
+120cc-pc-11.cl.msu.edu  0:03:05
+
+Task 3_3 results end
+
+
+Task 4_1 code begin
+
+### mapper ###
+
+#!/usr/bin/python
+import sys
+import re
+import xml.etree.ElementTree as ET
+#re.compile('(?<=\ Id=\")\d+').findall(string_to_search) returns the Id
+for line in sys.stdin:
+    # if the lenght of the split is not 10 that means we have malformed input, we can ignore it
+    try:
+        m = ET.fromstring(line)
+        # user = m.attrib['OwnerUserId']
+        view_count = m.attrib["ViewCount"]
+        # post_type 1 for question 2 for answer
+        post_type = m.attrib["PostTypeId"]
+        Id = m.attrib["Id"]
+        if post_type=='1':
+            print('{0}\t{1}'.format(Id,view_count))
+    except:
+        continue
+
+
+
+### reducer ###
+
+#!/usr/bin/python
+
+import sys
+import re
+import datetime
+prev_key = ""
+key = ""
+top_10=[]
+
+def check_and_add_top_10(key, value):
+    global top_10
+    if len(top_10) < 10:
+        top_10.append((key, value))
+        top_10 = sorted(top_10, key=lambda tup: tup[1], reverse=True)
+    else:
+        if value >= top_10[9][1]:
+            top_10[9] = (key, value)
+            top_10 = sorted(top_10, key=lambda tup: tup[1], reverse=True)
+def output_top_10():
+    global top_10
+    for k in top_10:
+        print("{0}\t{1}").format(k[0], k[1])
+
+for line in sys.stdin:
+    line = line.strip()
+    key, value = line.split("\t", 1)
+    check_and_add_top_10(key, value)
+
+output_top_10()
+
+### Hadoop ###
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /data/assignments/ex2/task3/stackLarge.txt  \
- -output /user/s1240267/data/output/exc-cw2/s1240267_task_4_1.out \
+ -output /user/s1240267/ex2/s1240267_task_4_1.out \
  -numReduceTasks 10 \
  -mapper t4_1_map.py \
  -file t4_1_map.py \
  -reducer t4_1_reduce.py \
  -file t4_1_reduce.py
 
-hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_4_1.out/part-* | sort -rn -k 2| head -10 | hdfs dfs -put - /user/s1240267/data/output/exc-cw2/s1240267_task_4_1.out/top10.txt
+
+# it is more efficient to use sort because its reducer outputs only 10 lines
+hdfs dfs -cat /user/s1240267/ex2/s1240267_task_4_1.out/part-* | sort -rn -k 2| head -10 | hdfs dfs -put - /user/s1240267/ex2/s1240267_task_4_1.out/top10.txt
 
 
-Task4_2
+Task 4_1 code end
+
+
+Task 4_1 results begin
+
+373419  99998
+371328  99854
+594323  9998
+267843  9998
+335602  9997
+558576  9996
+179510  9996
+422768  9995
+368041  9995
+211243  9995
+
+Task 4_1 results end
+
+
+Task 4_2 code begin
+
+### mapper ###
+#!/usr/bin/python
+
+import sys
+import re
+import xml.etree.ElementTree as ET
+
+#re.compile('(?<=\ Id=\")\d+').findall(string_to_search) returns the Id
+
+for line in sys.stdin:
+    # if the lenght of the split is not 10 that means we have malformed input, we can ignore it
+    try:
+        m = ET.fromstring(line)
+        user = m.attrib['OwnerUserId']
+        parent_question = m.attrib['ParentId']
+        # view_count = m.attrib['ViewCount']
+        # post_type 1 for question 2 for answer
+        post_type = m.attrib['PostTypeId']
+        if post_type=='2':
+            print('{0}\t{1}\t{2}'.format(user, parent_question, 1))
+    except:
+        continue
+
+
+### reducer ###
+#!/usr/bin/python
+
+import sys
+import re
+import datetime
+
+prev_key = ""
+key = ""
+value_total = 0
+questions_list = []
+
+max_key =""
+max_value = 0
+max_question_list =[]
+
+def print_out():
+    global max_key
+    global max_question_list
+    global max_value_total
+    sys.stdout.write(max_key+"\t->\t")
+    for i in max_question_list:
+        sys.stdout.write("{0}, ".format(i))
+
+for line in sys.stdin:
+    line = line.strip()
+    key, Id ,value = line.split("\t", 2)
+    value = int(value)
+    if prev_key == key:
+        value_total += value
+        questions_list.append(Id)
+    else:
+        if prev_key:
+            if max_value <= value_total:
+                max_value = value_total
+                max_key = prev_key
+                max_question_list = questions_list
+
+        questions_list = []
+        value_total = value
+        prev_key = key
+        questions_list.append(Id)
+
+if prev_key == key:
+    if max_value <= value_total:
+        max_value = value_total
+        max_key = prev_key
+        max_question_list = questions_list
+        questions_list = []
+
+#we print the number of elements in order to be able to tell which reducer has the max
+sys.stdout.write( "{0}\t".format(str(len(max_question_list)))  )
+print_out()
+
+
+### Hadoop ###
 hadoop jar /opt/hadoop/hadoop-2.7.1/share/hadoop/tools/lib/hadoop-streaming-2.7.1.jar \
  -input /data/assignments/ex2/task3/stackLarge.txt  \
- -output /user/s1240267/data/output/exc-cw2/s1240267_task_4_2.out \
+ -output /user/s1240267/ex2/s1240267_task_4_2.out \
  -numReduceTasks 10 \
  -mapper t4_2_map.py \
  -file t4_2_map.py \
  -reducer t4_2_reduce.py \
  -file t4_2_reduce.py
 
-hdfs dfs -cat /user/s1240267/data/output/exc-cw2/s1240267_task_4_2.out/part-* | sort -rn | head -1 | awk 'BEGIN{FS=OFS="\t"}{$1="";}1'| hdfs dfs -put - /user/s1240267/data/output/exc-cw2/s1240267_task_4_2.out/top1.txt
+#sort is more efficient because each reducer outputs only 1 line
+hdfs dfs -cat /user/s1240267/ex2/s1240267_task_4_2.out/part-* | sort -rn | head -1 | awk 'BEGIN{FS=OFS="\t"}{$1="";sub("\t","")}1' | hdfs dfs -put - /user/s1240267/ex2/s1240267_task_4_2.out/top1.txt
 
-try that as well awk 'BEGIN{FS=OFS="\t"}{$1="";sub("\t","")}1'  file
+Task 4_2 code end
 
+Task 4_2 results begin
 
+22656   ->  178255, 144516, 185124, 194496, 187068, 183685, 139592, 186115, 155378, 176264, 197005, 157055, 197482, 157198, 157219, 174498, 155458, 177835, 186600, 152313, 161432, 183473, 139837, 156369, 190936, 149233, 155260, 190227, 182600, 183367, 188184, 190376, 187989, 185690, 162335, 155209, 188141, 194165, 195606, 197297, 183315, 188864, 157254, 161477, 177506, 177836, 171332, 192599, 144176, 191333, 197241, 182683, 169220, 141423, 162303, 146358, 142003, 188510, 178026, 182749, 192121, 185072, 146155, 143997, 146204, 157354, 161556, 194676, 151936, 186527, 183033, 139592, 186643, 182440, 186523, 176106, 185987, 181427, 141467, 188977, 186007, 154680, 152613, 148882, 169378, 156815, 193873, 197302, 9033, 171717, 162879, 159705, 154551, 157557, 162007, 161231, 154463, 187695, 154489, 179337, 164144, 174155, 154483, 145856, 181643, 194304, 188688, 168150, 188134, 196936, 187576, 177538, 164468, 177363, 183479, 186467, 145509, 193731, 188769, 177373, 139260, 187633, 137448, 183856, 190299, 155780, 187983, 178188, 187602, 176267, 131871, 154112, 186964, 174662, 162727, 152900, 187414, 186385, 162112, 186891, 178333, 196094, 161633, 168169, 176196, 162696, 162571, 163183, 174585, 187289, 137454, 191151, 188120, 145371, 164369, 153048, 144783, 148078, 148074, 168393, 161822, 188693, 187742, 178516, 153573, 194436, 183250, 194450, 164425, 149211, 164192, 178976, 197182, 137688, 191153, 171664, 164643, 173080, 156430, 186653, 194464, 197174, 161184, 143947, 186082, 194528, 161942, 178888, 173272, 148298, 276383, 234059, 233905, 363549, 268393, 241537, 347242, 301809, 305140, 233850, 342106, 234239, 305154, 227083, 294171, 312471, 206532, 206539, 206512, 317462, 347235, 233711, 241238, 277210, 305393, 268013, 268018, 277018, 294216, 347156, 277260, 342080, 233579, 276319, 277211, 241148, 327460, 234341, 277309, 363596, 241134, 293916, 363569, 355875, 317606, 293905, 335807, 293900, 277351, 276253, 268530, 233475, 305519, 293882, 256566, 240836, 277319, 207521, 293814, 234379, 268513, 349742, 301618, 301960, 206198, 273949, 317619, 327332, 233382, 268652, 218461, 327286, 276203, 268671, 207592, 267830, 358714, 275944, 317134, 233288, 349724, 267765, 233243, 353028, 312103, 219519, 343358, 301965, 294553, 233207, 207662, 312184, 219604, 256077, 317084, 256065, 219618, 288061, 317788, 302032, 254260, 218322, 233216, 353224, 305651, 317047, 317816, 302037, 355933, 205568, 207829, 301510, 304967, 233081, 240863, 219815, 240837, 233123, 277710, 227485, 219851, 207867, 277732, 358894, 305755, 313036, 275944, 277783, 207889, 317026, 277814, 233013, 207896, 207888, 251868, 334838, 349904, 313062, 301354, 277857, 356091, 251937, 287899, 277869, 301365, 334779, 304859, 234591, 301393, 207889, 326820, 251946, 313111, 240638, 269058, 313127, 205458, 232863, 326757, 205411, 251987, 208056, 232781, 255976, 257052, 218025, 304816, 257045, 358654, 232748, 343366, 240258, 208124, 336387, 217980, 232732, 334658, 208119, 302096, 252014, 336414, 278039, 242225, 208184, 278075, 326648, 267076, 242264, 358645, 208193, 316911, 242393, 267059, 346762, 346365, 304782, 217805, 302157, 361371, 242400, 341971, 295005, 208263, 304770, 316855, 205099, 287646, 257251, 208325, 295017, 326390, 232535, 287684, 232558, 287663, 334579, 234990, 343457, 234994, 362441, 217707, 342268, 269303, 232545, 266923, 217678, 336649, 266901, 287598, 204970, 257331, 242517, 343491, 287592, 266825, 295128, 235003, 266818, 269310, 217645, 308427, 295110, 242438, 295161, 287551, 278362, 255797, 266776, 266716, 289307, 336755, 336781, 348964, 336775, 364009, 242577, 305911, 336831, 326223, 306085, 295224, 257462, 334415, 204739, 255813, 346722, 242614, 242695, 208532, 343466, 257519, 278488, 242718, 295287, 204627, 208753, 208381, 235025, 316727, 304640, 341957, 242745, 343457, 326098, 204564, 341949, 311710, 208835, 311363, 346721, 329029, 336884, 208876, 278649, 353342, 204505, 204468, 295387, 329129, 306212, 316674, 220887, 343100, 295402, 337038, 337029, 221001, 316656, 293254, 293256, 358546, 242904, 221037, 266308, 221001, 208969, 204343, 242930, 266292, 289496, 269578, 266115, 337121, 337144, 289452, 221154, 269613, 337165, 341847, 212614, 240219, 204208, 243045, 334179, 317825, 221287, 321566, 204139, 278703, 329203, 302303, 221378, 269669, 337239, 316582, 284063, 316532, 304488, 321418, 316548, 337254, 287195, 364155, 295579, 325725, 203695, 295593, 293114, 342270, 240122, 287178, 275073, 337334, 313584, 295626, 318775, 302371, 359085, 203863, 304483, 304389, 231767, 265919, 240090, 287142, 295670, 221687, 240047, 209281, 235250, 221691, 255645, 243379, 231741, 209304, 325561, 255644, 258120, 325511, 209354, 255341, 325524, 295731, 265849, 209389, 295736, 221804, 295749, 255341, 221824, 333953, 287037, 255553, 362955, 252257, 252751, 341848, 221925, 279374, 258204, 353491, 343675, 239905, 239888, 315146, 209415, 313729, 231525, 269578, 269988, 222015, 231480, 269594, 325267, 265639, 293007, 313753, 258285, 239865, 337702, 292988, 358196, 337744, 289770, 265585, 300499, 261177, 270091, 252775, 333829, 222245, 302476, 235455, 258339, 325156, 270148, 252793, 362424, 300489, 270093, 343684, 235446, 270187, 243811, 230869, 337925, 337903, 355787, 222182, 359206, 289845, 265370, 333736, 274585, 231159, 352089, 230454, 333737, 338024, 252817, 222457, 239645, 300376, 352117, 300402, 222511, 258486, 270268, 286632, 222601, 280114, 280127, 286605, 286533, 274172, 333655, 280172, 258567, 265208, 252893, 313910, 345562, 292536, 244135, 280270, 286481, 286508, 324727, 216008, 265147, 244192, 292676, 324670, 222819, 280426, 258691, 265097, 265106, 324656, 290061, 210020, 222790, 280439, 350120, 324604, 352177, 286399, 264984, 210079, 253058, 314008, 338262, 355282, 210123, 359320, 202271, 352471, 258988, 270630, 314033, 333280, 280634, 333364, 223249, 343852, 253211, 270747, 255098, 330155, 280755, 239306, 210353, 324341, 270771, 264718, 344630, 343869, 201933, 253226, 321423, 314100, 290189, 314108, 201930, 264617, 239202, 290238, 300055, 215458, 352266, 290227, 280896, 280980, 264575, 215421, 261428, 296650, 333242, 7074, 281036, 333151, 255063, 290304, 330318, 324053, 314203, 324066, 244772, 223549, 299987, 338712, 362740, 264496, 355620, 273949, 244811, 201607, 201616, 244826, 235003, 229886, 264196, 261387, 299950, 281210, 296755, 215213, 223679, 296783, 201479, 281276, 338895, 201440, 253399, 290527, 330502, 254784, 215144, 350240, 362719, 229886, 319864, 359436, 315139, 319789, 229844, 281325, 343968, 253460, 229797, 244949, 244881, 344503, 292265, 201255, 253468, 245058, 349442, 238675, 330622, 299703, 238660, 296978, 211143, 229656, 290645, 271347, 350991, 253492, 238606, 238583, 285846, 254009, 271384, 285793, 214814, 214809, 229554, 271404, 352618, 349460, 259676, 254784, 229508, 271398, 238555, 238547, 271440, 214584, 259726, 214688, 352234, 309939, 211448, 229346, 271490, 259751, 238490, 211477, 360241, 346211, 200785, 200755, 360234, 349192, 344034, 271520, 290602, 238413, 200689, 271530, 200691, 263614, 229254, 259887, 259900, 200574, 224537, 211567, 229211, 290819, 330963, 271561, 253549, 352592, 259929, 281933, 349410, 229076, 309734, 309706, 271613, 281970, 320396, 263400, 323235, 200319, 271615, 362632, 285523, 323230, 254096, 263347, 282037, 273301, 323212, 282028, 200239, 349251, 253664, 360151, 282086, 229015, 200151, 263191, 282099, 236676, 271710, 200079, 228987, 348175, 323079, 263151, 236676, 349256, 225073, 228945, 339699, 254099, 323032, 299515, 320542, 309631, 200079, 263023, 299475, 253673, 225194, 339755, 339747, 225233, 359935, 362555, 285292, 339792, 362042, 214136, 309553, 228796, 299439, 360111, 211958, 271767, 285238, 262887, 211958, 291387, 339862, 352472, 198079, 272949, 362059, 331217, 309496, 348120, 339912, 253780, 253757, 348122, 212028, 212089, 352415, 282468, 212124, 320767, 225686, 282317, 285177, 339952, 214017, 225717, 364986, 254099, 291828, 236676, 356785, 271767, 213985, 362112, 320814, 262618, 285087, 359625, 236861, 340090, 362111, 236878, 321549, 362326, 262547, 262367, 297471, 340128, 349369, 262469, 309286, 262480, 291080, 362278, 225953, 225985, 349280, 365086, 362124, 272814, 340298, 212263, 246038, 284896, 362150, 356972, 299129, 245607, 246096, 246108, 314779, 309161, 246112, 291340, 298139, 299135, 237041, 299117, 283143, 315358, 309071, 352433, 344380, 212902, 340507, 246270, 321096, 340546, 283241, 340525, 284678, 307984, 272153, 308986, 213637, 254037, 308954, 308061, 246389, 272013, 283374, 344363, 213638, 262096, 212401, 298277, 262110, 212429, 298976, 303502, 298289, 348037, 213480, 283476, 283492, 298972, 262089, 283487, 298305, 227820, 283513, 246498, 246495, 291286, 247621, 226664, 283511, 227731, 253937, 283487, 246572, 283669, 283679, 247455, 198543, 212429, 359732, 213045, 247241, 198419, 298458, 346313, 254273, 261809, 283763, 261028, 298503, 213333, 237159, 261062, 237377, 283749, 308683, 291415, 227575, 355340, 344327, 284093, 291413, 227486, 362224, 341029, 261126, 272368, 226967, 261086, 218781, 284336, 353131, 305244, 268251, 241405, 241470, 241336, 335450, 218744, 268321, 335517, 234008, 241238, 253993, 288794, 276472, 317335, 288808, 294138, 327916, 342151, 305358, 218888, 480319, 506092, 476163, 500508, 465706, 411572, 401415, 507936, 411579, 451004, 388365, 457970, 513672, 476534, 388375, 465627, 442022, 507649, 476049, 423840, 411592, 479105, 386493, 446706, 390108, 406850, 427799, 377245, 423247, 424775, 389993, 474184, 476217, 400866, 506807, 515975, 460846, 419796, 418983, 419788, 393169, 377218, 486948, 460755, 490677, 460733, 453538, 386500, 490728, 453738, 478150, 438188, 458518, 403088, 516788, 478167, 375014, 504645, 516768, 386544, 410692, 378118, 443687, 497508, 478968, 469657, 449760, 487046, 380626, 453479, 464889, 493177, 434888, 385714, 464874, 427725, 466946, 454870, 374215, 406830, 413597, 367823, 473087, 453451, 397760, 372087, 510949, 464852, 399760, 400900, 464831, 403058, 476422, 367905, 386584, 406791, 486784, 427902, 399648, 487065, 431839, 389813, 439255, 427909, 497699, 453359, 510863, 389822, 424760, 458460, 478135, 446835, 399768, 503789, 399770, 379282, 385709, 406760, 406293, 427941, 486749, 464731, 503877, 386183, 372075, 490896, 395232, 525319, 433475, 395314, 399798, 455420, 380885, 427980, 453820, 492454, 431091, 385688, 493673, 370831, 454891, 434761, 400861, 453186, 446462, 402936, 460698, 453163, 380595, 443936, 482466, 474564, 428001, 461439, 443310, 506648, 503898, 510477, 479565, 442425, 461475, 424586, 504500, 443466, 419954, 440016, 371604, 453451, 370820, 519324, 414896, 511378, 466841, 380081, 439298, 420895, 495004, 456935, 370920, 417039, 384262, 453879, 455409, 446474, 383775, 453059, 519461, 496096, 453023, 407255, 370801, 370401, 519484, 516569, 436700, 457287, 380451, 367814, 445984, 512266, 458225, 439302, 477101, 519520, 473998, 474057, 370938, 519515, 436759, 510376, 413825, 514953, 436716, 477351, 510319, 466799, 452743, 510341, 450350, 483702, 465238, 446702, 516309, 413311, 452902, 385966, 519631, 386741, 482560, 486420, 519645, 366852, 487258, 524567, 503427, 519675, 510214, 511477, 205138, 380274, 371702, 414749, 407402, 393701, 493947, 443935, 446663, 512527, 472488, 450410, 446483, 461893, 430145, 405379, 522222, 425988, 419952, 474259, 479883, 479966, 373541, 374535, 503383, 524503, 389426, 442245, 495616, 443980, 436736, 524495, 385730, 485240, 450463, 493033, 461988, 524483, 469899, 480007, 402430, 372639, 443423, 374262, 460576, 450474, 460562, 440204, 402517, 391557, 374940, 474535, 448158, 392266, 480033, 500832, 426505, 464471, 503263, 495273, 524428, 519914, 434039, 375881, 436954, 374934, 420867, 515787, 516882, 380198, 519929, 498636, 436807, 375831, 425226, 365615, 503218, 444008, 406433, 368832, 475794, 466560, 474315, 370501, 468062, 413095, 380512, 424743, 507343, 466565, 448206, 524351, 448258, 520030, 514833, 475825, 474841, 462167, 471693, 371026, 427756, 520064, 493311, 400022, 472137, 479081, 503139, 485398, 480263, 442265, 448320, 366897, 489485, 452281, 469982, 452296, 439974, 445915, 433106, 450617, 503996, 405352, 491735, 462311, 504367, 396009, 375544, 468266, 443000, 517751, 380639, 396005, 468273, 480389, 462348, 489258, 405600, 516399, 520280, 384401, 520290, 385949, 435729, 442678, 516463, 495471, 464941, 443010, 489304, 487441, 400100, 443239, 493388, 417039, 489317, 368806, 375940, 366345, 406253, 430403, 487485, 374553, 386088, 452120, 481725, 368170, 385809, 384247, 520400, 424920, 477965, 475843, 515631, 366332, 396143, 424443, 477399, 384511, 380665, 394898, 396191, 513335, 393322, 468372, 410026, 468388, 483333, 434737, 499210, 491646, 495228, 386341, 481846, 370707, 406463, 524066, 524062, 520527, 512401, 524081, 489173, 491780, 412864, 371930, 438431, 516617, 509193, 439897, 439086, 384633, 513234, 446320, 431203, 484562, 459560, 407983, 380775, 420774, 412839, 459554, 462699, 460404, 365489, 428617, 433526, 423865, 462697, 499393, 459538, 484212, 367626, 394921, 419554, 379041, 438715, 378856, 409969, 427217, 408101, 462793, 460815, 476676, 393152, 483215, 401945, 462879, 462793, 460371, 457128, 493494, 378259, 392135, 372033, 410417, 448629, 412763, 432833, 450820, 374790, 460364, 496704, 380632, 438492, 516637, 417039, 417699, 385688, 406351, 448653, 477750, 411631, 487682, 387893, 493490, 451647, 511093, 394957, 488808, 374014, 390900, 463029, 405288, 490850, 443403, 454218, 444909, 506295, 367577, 384489, 398378, 374734, 401348, 408310, 523359, 396621, 437026, 516689, 380755, 414290, 388822, 523194, 492539, 387198, 388775, 385841, 409852, 488601, 480973, 481714, 460300, 507747, 420541, 454250, 520922, 446262, 401232, 428896, 388708, 465313, 439166, 388718, 428924, 439617, 481068, 431967, 470984, 490860, 415291, 409846, 433188, 483054, 525425, 431311, 481122, 447186, 470944, 374673, 434626, 374398, 409611, 405333, 434890, 411447, 463419, 504103, 398117, 371418, 442924, 439814, 470311, 388642, 463302, 420617, 439541, 370852, 447408, 482986, 502430, 431785, 442019, 374651, 456786, 371987, 481211, 446303, 391462, 470789, 411478, 474450, 420623, 512166, 421851, 491375, 427363, 511921, 502415, 434666, 409807, 374316, 405429, 411517, 451228, 515590, 412380, 470724, 516160, 414328, 421801, 411515, 423794, 521687, 385893, 516964, 421797, 409765, 412435, 481334, 481314, 411500, 523624, 457482, 525413, 508126, 514564, 455237, 523431, 460223, 445883, 496472, 508085, 392083, 409716, 409727, 474451, 406361, 451099, 451078, 468832, 508054, 514948, 417878, 388353, 449002, 383551, 429890, 385913, 371398, 386017, 398212, 500431, 508026, 383735, 425132, 398170, 502346, 405336, 515269, 417954, 521505, 451035, 420646, 414746, 468914, 525364, 418064, 408452, 392787, 388439, 388431, 443170, 608453, 654752, 608525, 608530, 533171, 627730, 608542, 627742, 654802, 542915, 579676, 531380, 642933, 642123, 642103, 543263, 543318, 642058, 642005, 578231, 578211, 578152, 643050, 641931, 580590, 543473, 641911, 641906, 580257, 659529, 577868, 580867, 580887, 580896, 580905, 531520, 641727, 577749, 537174, 581318, 581343, 577427, 581405, 581448, 643422, 577403, 577358, 620546, 577280, 620534, 581590, 620484, 577132, 581714, 581722, 581730, 620376, 576912, 576979, 531151, 581949, 581967, 620234, 643694, 582095, 576678, 576740, 582122, 620198, 576660, 643775, 531315, 582287, 582284, 582550, 582575, 528122, 620024, 536971, 582725, 644089, 619912, 659148, 640651, 640613, 619856, 583123, 644267, 619716, 583414, 640522, 640502, 644342, 640464, 536798, 640415, 538121, 575217, 575173, 575202, 640302, 640307, 619434, 538281, 574972, 583944, 619448, 622710, 622743, 574868, 584134, 574824, 574809, 622763, 574787, 658868, 527953, 538305, 644715, 574019, 619197, 619162, 531759, 619087, 527947, 619033, 544991, 618966, 584549, 544449, 585031, 618909, 618878, 618835, 573882, 585306, 585344, 585372, 658654, 585406, 573692, 573655, 573621, 639320, 639292, 658644, 585725, 618535, 573584, 573539, 658614, 573439, 538426, 639166, 585860, 585969, 536449, 573384, 545421, 586037, 536435, 527819, 586042, 573325, 586087, 586116, 623159, 586193, 645533, 586262, 545457, 586284, 573231, 536396, 658506, 623243, 586352, 623242, 573194, 586363, 536378, 586422, 586436, 638881, 618292, 618276, 645678, 618267, 638828, 573050, 573026, 618216, 618182, 638701, 618190, 645826, 645836, 618148, 527766, 572647, 527685, 538695, 528999, 545671, 525711, 538729, 545885, 531976, 638222, 571265, 623451, 638216, 638171, 638142, 638115, 529088, 588319, 638038, 637960, 646742, 646750, 646779, 535972, 646794, 570578, 570560, 637672, 570535, 570471, 570452, 528372, 570376, 570338, 570302, 570231, 570153, 570123, 589351, 569903, 569877, 569714, 589737, 589774, 569614, 569522, 589870, 569525, 589943, 589966, 589967, 623990, 590122, 647403, 647413, 590162, 647425, 590231, 647427, 569245, 647453, 647499, 569109, 624116, 535328, 624176, 624217, 568852, 535720, 568780, 568724, 542770, 568751, 590991, 535531, 568671, 657735, 568616, 647779, 591144, 541936, 657685, 647815, 591273, 657664, 591507, 535572, 636266, 591632, 648003, 648115, 591951, 592064, 648160, 648188, 636046, 657573, 648196, 635915, 635841, 566860, 544249, 657503, 592824, 592934, 592933, 635640, 648553, 648576, 593026, 566655, 527259, 615377, 648700, 566437, 566418, 648692, 566411, 615334, 547946, 648732, 615168, 566185, 566167, 657318, 593730, 615105, 593808, 657263, 594208, 594230, 657112, 594268, 594378, 634829, 657037, 634777, 634727, 656564, 614713, 634693, 634664, 565095, 565075, 564961, 594923, 564935, 564938, 595110, 614542, 564816, 564557, 564699, 595279, 649320, 649428, 595399, 527234, 564303, 595762, 595810, 649471, 649773, 596065, 596339, 596367, 596465, 596549, 625340, 649962, 613699, 633656, 534846, 597012, 633585, 534807, 532588, 548007, 549274, 549382, 625465, 534793, 597590, 625513, 597675, 597788, 534718, 534690, 549606, 597819, 549701, 549755, 625611, 625640, 625687, 656431, 561891, 561853, 540248, 561762, 656373, 598640, 598702, 561601, 561528, 534531, 656325, 632606, 632570, 612753, 561365, 650898, 612722, 612689, 625928, 612592, 625947, 651032, 651055, 632399, 632383, 612486, 626058, 612283, 599976, 600022, 632148, 626115, 651283, 612253, 626139, 626132, 651350, 612178, 651399, 651419, 651462, 631994, 559779, 626196, 560123, 600525, 550143, 656072, 631919, 612058, 600607, 550536, 600651, 626187, 631825, 540430, 550571, 651682, 532816, 529999, 631651, 651803, 626328, 631550, 631499, 611433, 631484, 559274, 559254, 601436, 601497, 540634, 601674, 550702, 601804, 631099, 601974, 631088, 621633, 611295, 602279, 602326, 540708, 630808, 655803, 558010, 551111, 551142, 551173, 630605, 655751, 610870, 652512, 610818, 626707, 532935, 630464, 540876, 610743, 610732, 610458, 540947, 533922, 557159, 610603, 630045, 533902, 557112, 603727, 533881, 655657, 626889, 551406, 533872, 626910, 626924, 626935, 533858, 556616, 629955, 556526, 556510, 604252, 629910, 551589, 533767, 653154, 533831, 556310, 556265, 629804, 610229, 629798, 556203, 610199, 556133, 629758, 556006, 555982, 629712, 533042, 555871, 610001, 555929, 610026, 555796, 526555, 555799, 653469, 609963, 555750, 629411, 605215, 653596, 605417, 653634, 627172, 605441, 605498, 653674, 605533, 605526, 653738, 655328, 653730, 605682, 605726, 628843, 605828, 655289, 605859, 605891, 627267, 526246, 653882, 627315, 609501, 606109, 609293, 554767, 606524, 552421, 552472, 606636, 606642, 627478, 606902, 533464, 606997, 533426, 607130, 552612, 627507, 554345, 554044, 554276, 607377, 533379, 554159, 607587, 541487, 552844, 553905, 552857, 552909, 542766, 628119, 553857, 628049, 553035, 608028, 608057, 533332, 627982, 654906, 654592, 654664, 553536, 654858, 654715, 648814,
 
- -partitioner org.apache.hadoop.mapred.lib.KeyFieldBasedPartitioner
+Task 4_2 results end
+
